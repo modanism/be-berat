@@ -20,7 +20,7 @@ export function convertDateToReadableString(dateString: string): string {
 }
 
 export function sortByDateDescending(data: Berat[]): Berat[] {
-  return data.sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime());
+  return data?.sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime());
 }
 
 export const calculateAverage = (berats: Berat[], attributeName: keyof Berat): number => {
