@@ -19,6 +19,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+import {
   calculateAverage,
   convertDateToReadableString,
   sortByDateDescending,
@@ -66,13 +78,31 @@ const berats: Berat[] = [
 // }
 
 export default function Home() {
-  
   // const testData = await getData();
   const [data, setData] = useState<Berat[]>([]);
 
+  const [date, setDate] = useState(Date.now());
+  const [max, setMax] = useState(0);
+  const [min, setMin] = useState(0);
+
   async function getData() {
     try {
-      const response = await fetch("http://be-app:3000");
+      const response = await fetch("http://localhost:13000");
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const data: Berat[] = await response.json();
+      setData(data);
+    } catch (error) {
+      console.error("Error fetching data: ", error);
+    }
+  }
+
+  async function handleDelete(id: number) {
+    try {
+      const response = await fetch(`http://localhost:13000/berat/${id}`, {
+        method: "DELETE",
+      });
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
@@ -92,39 +122,86 @@ export default function Home() {
       <Table className="bg-white rounded-lg">
         <TableHeader>
           <TableRow>
-            <TableHead>Invoice</TableHead>
-            <TableHead className="w-[15vw]">Status</TableHead>
-            <TableHead className="w-[15vw]">Method</TableHead>
-            <TableHead className="w-[15vw]">Amount</TableHead>
+            <TableHead>Tanggal</TableHead>
+            <TableHead className="w-[15vw]">Max</TableHead>
+            <TableHead className="w-[15vw]">Min</TableHead>
+            <TableHead className="w-[15vw]">Perbedaan</TableHead>
             <TableHead className="w-[100px]"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sortByDateDescending(data).map((berat) => (
-            <TableRow key={berat.id}>
-              <TableCell className="font-medium">
-                {convertDateToReadableString(berat.tanggal)}
-              </TableCell>
-              <TableCell>{berat.max}</TableCell>
-              <TableCell>{berat.min}</TableCell>
-              <TableCell>{berat.perbedaan}</TableCell>
-              <TableCell>
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="bg-black px-[5px] py-[3px] rounded-md text-white">
-                    Action
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>Detail</DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>Edit</DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>Delete</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
-            </TableRow>
-          ))}
+          {data &&
+            sortByDateDescending(data).map((berat) => (
+              <TableRow key={berat.id}>
+                <TableCell className="font-medium">
+                  {convertDateToReadableString(berat.tanggal)}
+                </TableCell>
+                <TableCell>{berat.max}</TableCell>
+                <TableCell>{berat.min}</TableCell>
+                <TableCell>{berat.perbedaan}</TableCell>
+                <TableCell>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline">Detail</Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
+                      <DialogHeader>
+                        <DialogTitle>
+                          {convertDateToReadableString(berat.tanggal)}
+                        </DialogTitle>
+                        <DialogDescription>
+                          {`Max : ${berat.max}\n`}
+                          {`Min : ${berat.min}\n`}
+                          {`Perbedaan : ${berat.perbedaan}\n`}
+                        </DialogDescription>
+                      </DialogHeader>
+                    </DialogContent>
+                  </Dialog>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline">Edit</Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
+                      <DialogHeader>
+                        <DialogTitle>Edit profile</DialogTitle>
+                        <DialogDescription>
+                          Make changes to your profile here. Click save when
+                          you're done.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="name" className="text-right">
+                            Name
+                          </Label>
+                          <Input
+                            id="name"
+                            defaultValue="Pedro Duarte"
+                            className="col-span-3"
+
+    
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="username" className="text-right">
+                            Username
+                          </Label>
+                          <Input
+                            id="username"
+                            defaultValue="@peduarte"
+                            className="col-span-3"
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button type="submit">Save changes</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                  <Button onClick={() => handleDelete(berat.id)}>Delete</Button>
+                </TableCell>
+              </TableRow>
+            ))}
         </TableBody>
         <TableFooter>
           <TableRow>
@@ -137,9 +214,7 @@ export default function Home() {
           </TableRow>
         </TableFooter>
         <TableCaption>
-          <Button>
-            Add new data
-          </Button>
+          <Button>Add new data</Button>
         </TableCaption>
       </Table>
     </main>
