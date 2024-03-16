@@ -1,0 +1,19 @@
+version: "3"
+services: 
+  db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: password123
+      POSTGRES_USER: user123
+      POSTGRES_DB: db123
+  be-app:
+    container_name: be-app
+    build: ./be
+    image: my-node-app
+    ports:
+      - 13000:3000
+  fe-app:
+    build: ./fe
+    image: my-fe-app
+    ports:
+      - 13001:3000
